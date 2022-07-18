@@ -1,6 +1,15 @@
 
-use super::Pair;
+use std::ops::Range;
+
+use super::Base;
+
+// use super::Coord;
 use super::Offset;
+
+use super::Pair;
+use super::Point;
+
+use super::Area;
 
 pub type Arrow = Pair<Offset>;
 
@@ -41,5 +50,22 @@ impl std::ops::Neg for Arrow
 	fn neg (self) -> Self
 	{
 		Arrow::new(-self.x.0, -self.y.0)
+	}
+}
+
+
+impl Arrow
+{
+	pub fn to_area (&self) -> Area
+	{
+		let root = Point::zero();
+		let extent = self.clone();
+
+		Area { root, extent }
+	}
+
+	pub fn to_range (&self) -> (Range<Base>, Range<Base>)
+	{
+		self.to_area().to_range()
 	}
 }

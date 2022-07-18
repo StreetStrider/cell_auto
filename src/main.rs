@@ -15,53 +15,47 @@ use geom::Arrow;
 
 use geom::Area;
 
+use geom::grid::Grid;
+use geom::grid::Cellular;
+
 
 type TermScalar = u16;
 
 
 fn main ()
 {
-	let view = View::new();
+	let mut view = View::new();
 
-	// let _origin = Point::new(2, 2);
-	// view.grid[3][4] = Cell::Fill;
+	view.grid.set(&Point::new(4, 3), Cell::Fill);
+	view.grid.set(&Point::new(5, 5), Cell::Fill);
 
 	view.draw();
 }
 
+
 #[derive(Clone)]
 #[derive(Copy)]
+#[derive(Debug)]
 enum Cell
 {
 	Empty,
 	Fill,
 }
 
-const size: usize = 30;
-
-type Row   = [ Cell; size ];
-type Table = [  Row; size ];
-
-struct Grid
+impl Cellular for Cell
 {
-	table: Table,
-}
-
-impl Grid
-{
-	fn new () -> Grid
+	fn new () -> Self
 	{
-		let mut grid = Grid { table: [ [ Cell::Empty; size ]; size ] };
-		grid.table[3][4] = Cell::Fill;
-
-		return grid
+		Cell::Empty
 	}
 }
 
+
 struct View
 {
-	grid: Grid,
-	area: Area,
+	grid: Grid<Cell, 50>,
+	viewport: Area,
+	camera: Arrow,
 }
 
 impl View
@@ -70,11 +64,13 @@ impl View
 	{
 		let root   = Point::new(2, 2);
 		let extent = Arrow::new(30, 20);
+		let camera = Arrow::new(0, 0);
 
 		View
 		{
 			grid: Grid::new(),
-			area: Area { root, extent },
+			viewport: Area { root, extent },
+			camera,
 		}
 	}
 
@@ -82,14 +78,22 @@ impl View
 	{
 		self.clear();
 
-		for (row_n, row) in self.grid.table.iter().enumerate()
+		let (rows, cols) = self.viewport.extent.to_range();
+
+		for row_n in rows
 		{
-			let root = self.area.root.clone();
+			let root = self.viewport.root.clone();
 			let root = root + Arrow::new(0, Base::try_from(row_n).unwrap());
 			print!("{}", root.to_cursor());
 
-			for cell in row
+			for col_n in cols.clone()
 			{
+				// println!("{};{}", row_n, col_n);
+				// print!("{};{} ", row_n, col_n);
+
+				let pin = Point::new(col_n, row_n) + self.camera;
+				let cell = self.grid.get(&pin);
+
 				print!("{}", match cell
 				{
 					Cell::Empty => '-',

@@ -7,6 +7,7 @@ pub type Base = i32;
 pub trait Scalar
 {
 	fn new (value: Base) -> Self;
+	fn to_usize (&self) -> usize;
 }
 
 pub mod coord;
@@ -26,3 +27,6 @@ pub use arrow::Arrow;
 
 pub mod area;
 pub use area::Area;
+
+pub mod grid;
+pub use grid::Grid;

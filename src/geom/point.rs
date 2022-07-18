@@ -1,6 +1,7 @@
 
 use termion::cursor::Goto;
 
+use super::Scalar;
 use super::Pair;
 use super::Coord;
 use super::Arrow;
@@ -53,5 +54,10 @@ impl Point
 	pub fn to_cursor (&self) -> Goto
 	{
 		Goto(self.x.to_cursor(), self.y.to_cursor())
+	}
+
+	pub fn to_usize (&self) -> (usize, usize)
+	{
+		(self.x.to_usize(), self.y.to_usize())
 	}
 }

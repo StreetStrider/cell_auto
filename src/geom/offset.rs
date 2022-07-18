@@ -16,6 +16,11 @@ impl Scalar for Offset
 	{
 		Self(value)
 	}
+
+	fn to_usize (&self) -> usize
+	{
+		self.0 as usize
+	}
 }
 
 

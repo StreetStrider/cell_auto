@@ -18,6 +18,11 @@ impl Scalar for Coord
 	{
 		Self(value)
 	}
+
+	fn to_usize (&self) -> usize
+	{
+		self.0 as usize
+	}
 }
 
 
