@@ -1,0 +1,8 @@
+[package]
+edition = "2021"
+
+name    = "cell_auto"
+version = "0.0.0"
+
+[dependencies]
+termion = "1.5"
