@@ -1,20 +1,35 @@
 
 use super::Point;
+use super::super::Cell;
 
 
-pub trait Cellular
+pub trait GridRead
 {
-	fn empty () -> Self;
+	type Item;
+
+	fn get (&self, point: &Point) -> Option<&Self::Item>;
 }
 
 
-pub struct Grid <Item: Cellular + Copy, const Size: usize>
+pub struct Grid <Item: Cell + Copy, const Size: usize>
 {
 	pub table: [ [ Item; Size ]; Size ],
 }
 
 
-impl <Item: Cellular + Copy, const Size: usize> Grid<Item, Size>
+impl <Item: Cell + Copy, const Size: usize> GridRead for Grid<Item, Size>
+{
+	type Item = Item;
+
+	fn get (&self, point: &Point) -> Option<&Item>
+	{
+		let (x, y) = self.ack(point)?;
+		Some(&self.table[y][x])
+	}
+}
+
+
+impl <Item: Cell + Copy, const Size: usize> Grid<Item, Size>
 {
 	pub fn new () -> Self
 	{
@@ -29,12 +44,6 @@ impl <Item: Cellular + Copy, const Size: usize> Grid<Item, Size>
 		if y >= Size { return None }
 
 		Some((x, y))
-	}
-
-	pub fn get (&self, point: &Point) -> Option<&Item>
-	{
-		let (x, y) = self.ack(point)?;
-		Some(&self.table[y][x])
 	}
 
 	pub fn set (&mut self, point: &Point, item: Item) -> Option<()>
