@@ -7,17 +7,20 @@
 mod geom;
 
 use geom::Point;
-use geom::grid::Grid;
 
 mod cell;
 use cell::Cell;
+
+mod doublegrid;
+use doublegrid::DoubleGrid;
 
 mod view;
 use view::View;
 
 type TermScalar = u16;
 
-pub type G1 = Grid<C1, 200>;
+// pub type G1 = Grid<C1, 200>;
+pub type G2 = DoubleGrid<C1, 200>;
 
 #[derive(Clone)]
 #[derive(Copy)]
@@ -48,7 +51,8 @@ impl Cell for C1
 
 fn main ()
 {
-	let mut grid = G1::new();
+	let mut dugrid = G2::new();
+	let grid = dugrid.get_next();
 
 	grid.set(&Point::new(0, 0), C1::Fill);
 	grid.set(&Point::new(0, 39), C1::Fill);
@@ -67,7 +71,15 @@ fn main ()
 	grid.set(&Point::new(199, 45), C1::Fill);
 	grid.set(&Point::new(199, 199), C1::Fill);
 
-	let view = View::<C1>::new(&grid);
+	dugrid.switch();
+	let view = View::<C1>::new(dugrid.get());
+	view.draw();
+
+	let grid = dugrid.get_next();
+	grid.set(&Point::new(0, 0), C1::Fill);
+
+	dugrid.switch();
+	let view = View::<C1>::new(dugrid.get());
 	view.draw();
 
 	loop {}
