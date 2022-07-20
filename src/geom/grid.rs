@@ -4,7 +4,7 @@ use super::Point;
 
 pub trait Cellular
 {
-	fn new () -> Self;
+	fn empty () -> Self;
 }
 
 
@@ -18,18 +18,29 @@ impl <Item: Cellular + Copy, const Size: usize> Grid<Item, Size>
 {
 	pub fn new () -> Self
 	{
-		Grid { table: [ [ Item::new(); Size ]; Size ] }
+		Grid { table: [ [ Item::empty(); Size ]; Size ] }
 	}
 
-	pub fn get (&self, point: &Point) -> Item
+	pub fn ack (&self, point: &Point) -> Option<(usize, usize)>
 	{
 		let (x, y) = point.to_usize();
-		self.table[y][x]
+
+		if x >= Size { return None }
+		if y >= Size { return None }
+
+		Some((x, y))
 	}
 
-	pub fn set (&mut self, point: &Point, item: Item)
+	pub fn get (&self, point: &Point) -> Option<&Item>
 	{
-		let (x, y) = point.to_usize();
+		let (x, y) = self.ack(point)?;
+		Some(&self.table[y][x])
+	}
+
+	pub fn set (&mut self, point: &Point, item: Item) -> Option<()>
+	{
+		let (x, y) = self.ack(point)?;
 		self.table[y][x] = item;
+		Some(())
 	}
 }

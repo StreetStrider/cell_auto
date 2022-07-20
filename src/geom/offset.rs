@@ -65,7 +65,7 @@ impl std::ops::Neg for Offset
 
 impl Offset
 {
-	pub fn new (value: Base) -> Offset
+	pub fn new (value: Base) -> Self
 	{
 		Offset(value)
 	}
