@@ -1,4 +1,8 @@
 
+use std::cell::Ref;
+use std::cell::RefMut;
+use std::cell::RefCell;
+
 use super::cell::Cell;
 use super::geom::grid::Grid;
 
@@ -24,40 +28,40 @@ impl Current
 }
 
 
-pub struct DoubleGrid <Item: Cell + Copy, const Size: usize>
+pub struct DoubleGrid <Item: Cell, const Size: usize>
 {
 	current: Current,
-	one: Box<Grid<Item, Size>>,
-	two: Box<Grid<Item, Size>>,
+	one: RefCell<Grid<Item, Size>>,
+	two: RefCell<Grid<Item, Size>>,
 }
 
 
-impl <Item: Cell + Copy, const Size: usize> DoubleGrid<Item, Size>
+impl <Item: Cell, const Size: usize> DoubleGrid<Item, Size>
 {
 	pub fn new () -> Self
 	{
 		let current = Current::One;
-		let one = Box::new(Grid::<Item, Size>::new());
-		let two = Box::new(Grid::<Item, Size>::new());
+		let one = RefCell::new(Grid::<Item, Size>::new());
+		let two = RefCell::new(Grid::<Item, Size>::new());
 
 		DoubleGrid { current, one, two }
 	}
 
-	pub fn get (&self) -> &Grid<Item, Size>
+	pub fn get (&self) -> Ref<'_, Grid<Item, Size>>
 	{
 		match self.current
 		{
-			One => & *self.one,
-			Two => & *self.two,
+			One => self.one.borrow(),
+			Two => self.two.borrow(),
 		}
 	}
 
-	pub fn get_next (&mut self) -> &mut Grid<Item, Size>
+	pub fn get_next (&self) -> RefMut<'_, Grid<Item, Size>>
 	{
 		match self.current
 		{
-			One => &mut *self.two,
-			Two => &mut *self.one,
+			One => self.two.borrow_mut(),
+			Two => self.one.borrow_mut(),
 		}
 	}
 

@@ -14,7 +14,7 @@ use geom::Point;
 mod cell;
 use cell::Cell;
 
-use geom::grid::GridRead;
+// use geom::grid::GridRead;
 
 mod doublegrid;
 use doublegrid::DoubleGrid;
@@ -24,8 +24,10 @@ use view::View;
 
 type TermScalar = u16;
 
-// pub type G1 = Grid<C1, 200>;
-pub type G1 = DoubleGrid<C1, 200>;
+const size: usize = 200;
+
+// pub type G1 = Grid<C1, size>;
+pub type G1 = DoubleGrid<C1, size>;
 
 #[derive(Clone)]
 #[derive(Copy)]
@@ -61,10 +63,46 @@ fn main ()
 	let mut dugrid = G1::new();
 	let mut view = View::new();
 
+	{
+		let mut grid = dugrid.get_next();
+
+		grid.set(&Point::new(0, 0), C1::Fill);
+		grid.set(&Point::new(0, 39), C1::Fill);
+		grid.set(&Point::new(199, 0), C1::Fill);
+		grid.set(&Point::new(199, 39), C1::Fill);
+
+		grid.set(&Point::new(4, 3), C1::Fill);
+		grid.set(&Point::new(5, 5), C1::Fill);
+		grid.set(&Point::new(5, 6), C1::Fill);
+		grid.set(&Point::new(6, 5), C1::Fill);
+		grid.set(&Point::new(105, 45), C1::Fill);
+		grid.set(&Point::new(106, 45), C1::Fill);
+		grid.set(&Point::new(107, 45), C1::Fill);
+		grid.set(&Point::new(108, 45), C1::Fill);
+		grid.set(&Point::new(198, 45), C1::Fill);
+		grid.set(&Point::new(199, 45), C1::Fill);
+		grid.set(&Point::new(199, 199), C1::Fill);
+	}
+
+	dugrid.switch();
+
 	loop
 	{
-		let pt = Point::new(0, 0);
-		if let Some(cell) = dugrid.get().get(&pt)
+		cycle(&mut dugrid);
+
+		view.tick();
+		view.draw(&*dugrid.get());
+
+		sleep(Duration::from_millis(500));
+	}
+}
+
+fn cycle (dugrid: &mut G1)
+{
+	{
+		let grid = dugrid.get();
+
+		for (pt, cell) in &*grid
 		{
 			let cell_next = match cell
 			{
@@ -72,47 +110,10 @@ fn main ()
 				Fill  => Empty,
 			};
 
-			let grid_next = dugrid.get_next();
+			let mut grid_next = dugrid.get_next();
 			grid_next.set(&pt, cell_next);
 		}
-		dugrid.switch();
-
-		view.tick();
-		view.draw(dugrid.get());
-
-		sleep(Duration::from_millis(500));
 	}
 
-	/*
-
-	grid.set(&Point::new(0, 0), C1::Fill);
-	grid.set(&Point::new(0, 39), C1::Fill);
-	grid.set(&Point::new(199, 0), C1::Fill);
-	grid.set(&Point::new(199, 39), C1::Fill);
-
-	grid.set(&Point::new(4, 3), C1::Fill);
-	grid.set(&Point::new(5, 5), C1::Fill);
-	grid.set(&Point::new(5, 6), C1::Fill);
-	grid.set(&Point::new(6, 5), C1::Fill);
-	grid.set(&Point::new(105, 45), C1::Fill);
-	grid.set(&Point::new(106, 45), C1::Fill);
-	grid.set(&Point::new(107, 45), C1::Fill);
-	grid.set(&Point::new(108, 45), C1::Fill);
-	grid.set(&Point::new(198, 45), C1::Fill);
-	grid.set(&Point::new(199, 45), C1::Fill);
-	grid.set(&Point::new(199, 199), C1::Fill);
-
 	dugrid.switch();
-	
-	view.draw();
-
-	let grid = dugrid.get_next();
-	grid.set(&Point::new(0, 0), C1::Fill);
-
-	dugrid.switch();
-	let view = View::<C1>::new(dugrid.get());
-	view.draw();
-
-	loop {}
-	*/
 }

@@ -1,5 +1,5 @@
 
-pub trait Cell
+pub trait Cell: Copy
 {
 	fn empty () -> Self;
 

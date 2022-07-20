@@ -1,4 +1,5 @@
 
+use super::Base;
 use super::Point;
 use super::super::Cell;
 
@@ -11,13 +12,13 @@ pub trait GridRead
 }
 
 
-pub struct Grid <Item: Cell + Copy, const Size: usize>
+pub struct Grid <Item: Cell, const Size: usize>
 {
 	pub table: [ [ Item; Size ]; Size ],
 }
 
 
-impl <Item: Cell + Copy, const Size: usize> GridRead for Grid<Item, Size>
+impl <Item: Cell, const Size: usize> GridRead for Grid<Item, Size>
 {
 	type Item = Item;
 
@@ -29,7 +30,7 @@ impl <Item: Cell + Copy, const Size: usize> GridRead for Grid<Item, Size>
 }
 
 
-impl <Item: Cell + Copy, const Size: usize> Grid<Item, Size>
+impl <Item: Cell, const Size: usize> Grid<Item, Size>
 {
 	pub fn new () -> Self
 	{
@@ -51,5 +52,62 @@ impl <Item: Cell + Copy, const Size: usize> Grid<Item, Size>
 		let (x, y) = self.ack(point)?;
 		self.table[y][x] = item;
 		Some(())
+	}
+}
+
+
+impl <'L, Item: Cell, const Size: usize> IntoIterator for &'L Grid<Item, Size>
+{
+	type Item = (Point, Item);
+	type IntoIter = GridIterator<'L, Item, Size>;
+
+	fn into_iter (self) -> Self::IntoIter
+	{
+		GridIterator::new(self)
+	}
+}
+
+
+pub struct GridIterator <'G, Item: Cell, const Size: usize>
+{
+	grid: &'G Grid<Item, Size>,
+	x: usize,
+	y: usize,
+}
+
+impl <'G, Item: Cell, const Size: usize> GridIterator<'G, Item, Size>
+{
+	fn new (grid: &'G Grid<Item, Size>) -> Self
+	{
+		GridIterator { grid, x: 0, y: 0 }
+	}
+}
+
+impl <'G, Item: Cell, const Size: usize> Iterator for GridIterator<'G, Item, Size>
+{
+	type Item = (Point, Item);
+
+	fn next (&mut self) -> Option<Self::Item>
+	{
+		let Self { grid, mut x, mut y } = self;
+
+		if y == Size { return None }
+
+		let pt = Point::new(x as Base, y as Base);
+		let next = grid.table[y][x];
+
+		if (x == Size - 1)
+		{
+			x = 0;
+			y = (y + 1);
+		}
+		else
+		{
+			x = (x + 1);
+		}
+
+		(self.x, self.y) = (x, y);
+
+		Some((pt, next))
 	}
 }
