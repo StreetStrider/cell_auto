@@ -4,12 +4,17 @@
 #![allow(non_camel_case_types)]
 #![allow(unused_parens)]
 
+use std::thread::sleep;
+use std::time::Duration;
+
 mod geom;
 
 use geom::Point;
 
 mod cell;
 use cell::Cell;
+
+use geom::grid::GridRead;
 
 mod doublegrid;
 use doublegrid::DoubleGrid;
@@ -20,7 +25,7 @@ use view::View;
 type TermScalar = u16;
 
 // pub type G1 = Grid<C1, 200>;
-pub type G2 = DoubleGrid<C1, 200>;
+pub type G1 = DoubleGrid<C1, 200>;
 
 #[derive(Clone)]
 #[derive(Copy)]
@@ -30,6 +35,8 @@ pub enum C1
 	Empty,
 	Fill,
 }
+
+use C1::*;
 
 impl Cell for C1
 {
@@ -51,8 +58,32 @@ impl Cell for C1
 
 fn main ()
 {
-	let mut dugrid = G2::new();
-	let grid = dugrid.get_next();
+	let mut dugrid = G1::new();
+	let mut view = View::new();
+
+	loop
+	{
+		let pt = Point::new(0, 0);
+		if let Some(cell) = dugrid.get().get(&pt)
+		{
+			let cell_next = match cell
+			{
+				Empty => Fill,
+				Fill  => Empty,
+			};
+
+			let grid_next = dugrid.get_next();
+			grid_next.set(&pt, cell_next);
+		}
+		dugrid.switch();
+
+		view.tick();
+		view.draw(dugrid.get());
+
+		sleep(Duration::from_millis(500));
+	}
+
+	/*
 
 	grid.set(&Point::new(0, 0), C1::Fill);
 	grid.set(&Point::new(0, 39), C1::Fill);
@@ -72,7 +103,7 @@ fn main ()
 	grid.set(&Point::new(199, 199), C1::Fill);
 
 	dugrid.switch();
-	let view = View::<C1>::new(dugrid.get());
+	
 	view.draw();
 
 	let grid = dugrid.get_next();
@@ -83,4 +114,5 @@ fn main ()
 	view.draw();
 
 	loop {}
+	*/
 }

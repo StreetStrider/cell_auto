@@ -15,39 +15,45 @@ use super::geom::grid::GridRead;
 const termion_goto_arrow: Arrow = Arrow { x: Offset(1), y: Offset(1) };
 
 
-pub struct View <'G, C: Cell>
+pub struct View
 {
-	pub grid: &'G dyn GridRead<Item = C>,
+	pub gen: u32,
+
 	root: Arrow,
-	// viewport: Area,
 	pub camera: Arrow,
 }
 
-impl <'G, C: Cell> View<'G, C>
+impl View
 {
-	pub fn new (grid: &'G dyn GridRead<Item = C>) -> View<C>
+	pub fn new () -> View
 	{
+		let gen = 0;
 		let root = Arrow::new(0, 1);
-		// let extent = Arrow::new(30, 20);
 		let camera = Arrow::new(0, 0);
 		// let camera = Arrow::new(4, 3);
 
 		View
 		{
-			grid,
+			gen,
 			root,
-			// viewport: Area { root, extent },
 			camera,
 		}
 	}
 
-	pub fn draw (&self)
+	pub fn tick (&mut self)
+	{
+		self.gen = (self.gen + 1);
+	}
+
+	pub fn draw <C: Cell> (&self, grid: &dyn GridRead<Item = C>)
 	{
 		self.clear();
 
+		print!("gen {}", self.gen);
+
 		let view_size = terminal_size() - self.root - Arrow::new(0, 5);
 		let (rows, cols) = view_size.to_range();
-		print!("{:?};{:?}", cols, rows);
+		// print!(" ({:?};{:?})", cols, rows);
 
 		let term_root = (Point::zero() + self.root + termion_goto_arrow);
 		let grid_root = (Point::zero() + self.camera);
@@ -62,7 +68,7 @@ impl <'G, C: Cell> View<'G, C>
 
 				print!("{}", p_term.to_cursor());
 
-				let cell = self.grid.get(&p_grid);
+				let cell = grid.get(&p_grid);
 
 				if let Some(cell) = cell
 				{

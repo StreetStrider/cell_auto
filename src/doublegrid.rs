@@ -9,8 +9,7 @@ pub enum Current
 	Two,
 }
 
-use Current::One;
-use Current::Two;
+use Current::*;
 
 impl Current
 {
