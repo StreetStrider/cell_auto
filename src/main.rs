@@ -27,6 +27,7 @@ use view::View;
 type TermScalar = u16;
 
 const size: usize = 200;
+const delay: u64 = 2;
 
 // pub type G1 = Grid<C1, size>;
 pub type G1 = DoubleGrid<C1, size>;
@@ -69,22 +70,16 @@ fn main ()
 	{
 		let mut grid = dugrid.get_next();
 
-		grid.set(&Point::new(0, 0), C1::Fill);
-		grid.set(&Point::new(0, 39), C1::Fill);
-		grid.set(&Point::new(199, 0), C1::Fill);
-		grid.set(&Point::new(199, 39), C1::Fill);
+		grid.set(&Point::new(3, 3), Fill);
+		grid.set(&Point::new(3, 4), Fill);
+		grid.set(&Point::new(3, 5), Fill);
 
-		grid.set(&Point::new(4, 3), C1::Fill);
-		grid.set(&Point::new(5, 5), C1::Fill);
-		grid.set(&Point::new(5, 6), C1::Fill);
-		grid.set(&Point::new(6, 5), C1::Fill);
-		grid.set(&Point::new(105, 45), C1::Fill);
-		grid.set(&Point::new(106, 45), C1::Fill);
-		grid.set(&Point::new(107, 45), C1::Fill);
-		grid.set(&Point::new(108, 45), C1::Fill);
-		grid.set(&Point::new(198, 45), C1::Fill);
-		grid.set(&Point::new(199, 45), C1::Fill);
-		grid.set(&Point::new(199, 199), C1::Fill);
+		grid.set(&Point::new(9, 3), Fill);
+		grid.set(&Point::new(9, 4), Fill);
+		grid.set(&Point::new(9, 5), Fill);
+		grid.set(&Point::new(8, 5), Fill);
+		grid.set(&Point::new(7, 4), Fill);
+
 	}
 
 	dugrid.switch();
@@ -94,7 +89,7 @@ fn main ()
 		view.tick();
 		view.draw(&*dugrid.get());
 
-		sleep(Duration::from_millis(500));
+		sleep(Duration::from_millis(delay));
 
 		cycle(&mut dugrid);
 	}
@@ -102,23 +97,37 @@ fn main ()
 
 fn cycle (dugrid: &mut G1)
 {
-	cycle_each(&*dugrid.get(), &mut *dugrid.get_next(), |cell|
 	{
-		match cell
+		let src = &*dugrid.get();
+		let dst = &mut *dugrid.get_next();
+		cycle_each(src, dst, |pt, cell|
 		{
-			Empty => Fill,
-			Fill  => Empty,
-		}
-	});
+			let nebs = fill_moore_of(src, &pt);
+
+			match cell
+			{
+				Empty => match nebs
+				{
+					3 => Fill,
+					_ => Empty,
+				},
+				Fill  => match nebs
+				{
+					2 | 3 => Fill,
+					_ => Empty,
+				},
+			}
+		});
+	}
 
 	dugrid.switch();
 }
 
-fn cycle_each <Item: Cell, const Size: usize, F: Fn(&Item) -> Item> (src: &Grid<Item, Size>, dst: &mut Grid<Item, Size>, fn_map: F)
+fn cycle_each <Item: Cell, const Size: usize, F: Fn(Point, &Item) -> Item> (src: &Grid<Item, Size>, dst: &mut Grid<Item, Size>, fn_map: F)
 {
 	for (pt, cell) in src
 	{
-		let cell_next = fn_map(cell);
+		let cell_next = fn_map(pt, cell);
 
 		dst.set(&pt, cell_next);
 	}
