@@ -1,5 +1,5 @@
 
-pub trait Cell: Copy
+pub trait Cell: Eq + Copy
 {
 	fn empty () -> Self;
 

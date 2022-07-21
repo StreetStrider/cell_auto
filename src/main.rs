@@ -10,11 +10,13 @@ use std::time::Duration;
 mod geom;
 
 use geom::Point;
+use geom::Arrow;
 
 mod cell;
 use cell::Cell;
 
-// use geom::grid::GridRead;
+use geom::grid::Grid;
+use geom::grid::GridRead;
 
 mod doublegrid;
 use doublegrid::DoubleGrid;
@@ -31,6 +33,7 @@ pub type G1 = DoubleGrid<C1, size>;
 
 #[derive(Clone)]
 #[derive(Copy)]
+#[derive(PartialEq, Eq)]
 #[derive(Debug)]
 pub enum C1
 {
@@ -88,32 +91,87 @@ fn main ()
 
 	loop
 	{
-		cycle(&mut dugrid);
-
 		view.tick();
 		view.draw(&*dugrid.get());
 
 		sleep(Duration::from_millis(500));
+
+		cycle(&mut dugrid);
 	}
 }
 
 fn cycle (dugrid: &mut G1)
 {
+	cycle_each(&*dugrid.get(), &mut *dugrid.get_next());
+
+	dugrid.switch();
+}
+
+fn cycle_each <const Size: usize> (src: &Grid<C1, Size>, dst: &mut Grid<C1, Size>)
+{
+	for (pt, cell) in src
 	{
-		let grid = dugrid.get();
-
-		for (pt, cell) in &*grid
+		let cell_next = match cell
 		{
-			let cell_next = match cell
-			{
-				Empty => Fill,
-				Fill  => Empty,
-			};
+			Empty => Fill,
+			Fill  => Empty,
+		};
 
-			let mut grid_next = dugrid.get_next();
-			grid_next.set(&pt, cell_next);
+		dst.set(&pt, cell_next);
+	}
+}
+
+/*
+fill_moore_of(&*grid, &Point::new(5, 5))
+
+
+	let grid = dugrid.get();
+	// println!("{:?}", moore_of(&*grid, &Point::new(1, 1)));
+	for item in moore_of(&*grid, &Point::new(5, 5))
+	{
+		println!("{:?}", item);
+	}
+	// println!("{}", );
+	return;
+*/
+
+fn fill_moore_of <'L, Item: Cell, const Size: usize> (grid: &'L Grid<Item, Size>, point: &Point) -> usize
+{
+	grid.get_range(moore(point))
+	.iter()
+	.filter(|(_, item)|
+	{
+		match item
+		{
+			Some(&item) if item != Item::empty() => true,
+			_ => false,
+		}
+	})
+	.count()
+}
+
+fn moore_of <'L, Item: Cell, const Size: usize> (grid: &'L Grid<Item, Size>, point: &Point)
+ -> Vec<(Point, Option<&'L Item>)>
+{
+	grid.get_range(moore(point))
+}
+
+fn moore (point: &Point) -> Vec<Point>
+{
+	let range = [-1, 0, 1];
+	let mut moore = vec![];
+
+	for x in range.clone()
+	{
+		for y in range.clone()
+		{
+			match (x, y)
+			{
+				(0, 0) => (),
+				(_, _) => moore.push(*point + Arrow::new(x, y)),
+			}
 		}
 	}
 
-	dugrid.switch();
+	moore
 }

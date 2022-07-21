@@ -9,6 +9,7 @@ pub trait GridRead
 	type Item;
 
 	fn get (&self, point: &Point) -> Option<&Self::Item>;
+	fn get_range (&self, points: Vec<Point>) -> Vec<(Point, Option<&Self::Item>)>;
 }
 
 
@@ -26,6 +27,16 @@ impl <Item: Cell, const Size: usize> GridRead for Grid<Item, Size>
 	{
 		let (x, y) = self.ack(point)?;
 		Some(&self.table[y][x])
+	}
+
+	fn get_range (&self, points: Vec<Point>) -> Vec<(Point, Option<&Item>)>
+	{
+		points.iter()
+		.map(|point|
+		{
+			(*point, self.get(&point))
+		})
+		.collect()
 	}
 }
 
