@@ -67,10 +67,10 @@ impl <Item: Cell, const Size: usize> Grid<Item, Size>
 }
 
 
-impl <'L, Item: Cell, const Size: usize> IntoIterator for &'L Grid<Item, Size>
+impl <'G, Item: Cell, const Size: usize> IntoIterator for &'G Grid<Item, Size>
 {
-	type Item = (Point, Item);
-	type IntoIter = GridIterator<'L, Item, Size>;
+	type Item = (Point, &'G Item);
+	type IntoIter = GridIterator<'G, Item, Size>;
 
 	fn into_iter (self) -> Self::IntoIter
 	{
@@ -96,7 +96,7 @@ impl <'G, Item: Cell, const Size: usize> GridIterator<'G, Item, Size>
 
 impl <'G, Item: Cell, const Size: usize> Iterator for GridIterator<'G, Item, Size>
 {
-	type Item = (Point, Item);
+	type Item = (Point, &'G Item);
 
 	fn next (&mut self) -> Option<Self::Item>
 	{
@@ -105,7 +105,7 @@ impl <'G, Item: Cell, const Size: usize> Iterator for GridIterator<'G, Item, Siz
 		if y == Size { return None }
 
 		let pt = Point::new(x as Base, y as Base);
-		let next = grid.table[y][x];
+		let next = &grid.table[y][x];
 
 		if (x == Size - 1)
 		{

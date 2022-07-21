@@ -102,20 +102,23 @@ fn main ()
 
 fn cycle (dugrid: &mut G1)
 {
-	cycle_each(&*dugrid.get(), &mut *dugrid.get_next());
+	cycle_each(&*dugrid.get(), &mut *dugrid.get_next(), |cell|
+	{
+		match cell
+		{
+			Empty => Fill,
+			Fill  => Empty,
+		}
+	});
 
 	dugrid.switch();
 }
 
-fn cycle_each <const Size: usize> (src: &Grid<C1, Size>, dst: &mut Grid<C1, Size>)
+fn cycle_each <Item: Cell, const Size: usize, F: Fn(&Item) -> Item> (src: &Grid<Item, Size>, dst: &mut Grid<Item, Size>, fn_map: F)
 {
 	for (pt, cell) in src
 	{
-		let cell_next = match cell
-		{
-			Empty => Fill,
-			Fill  => Empty,
-		};
+		let cell_next = fn_map(cell);
 
 		dst.set(&pt, cell_next);
 	}
