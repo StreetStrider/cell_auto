@@ -1,12 +1,40 @@
 
 use termion::cursor::Goto;
 
-use super::Scalar;
 use super::Pair;
 use super::Coord;
 use super::Arrow;
 
 pub type Point = Pair<Coord>;
+
+
+//
+// From
+//
+impl From<Point> for Goto
+{
+	fn from (point: Point) -> Goto
+	{
+		let Point { x, y } = point;
+		Goto(x.into(), y.into())
+	}
+}
+
+impl From<(usize, usize)> for Point
+{
+	fn from ((x, y): (usize, usize)) -> Point
+	{
+		Point { x: x.into(), y: y.into() }
+	}
+}
+
+impl From<Point> for (usize, usize)
+{
+	fn from (point: Point) -> (usize, usize)
+	{
+		(point.x.into(), point.y.into())
+	}
+}
 
 
 //
@@ -45,19 +73,5 @@ impl std::ops::Neg for Point
 	fn neg (self) -> Self
 	{
 		Point::new(-self.x.0, -self.y.0)
-	}
-}
-
-
-impl Point
-{
-	pub fn to_cursor (&self) -> Goto
-	{
-		Goto(self.x.to_cursor(), self.y.to_cursor())
-	}
-
-	pub fn to_usize (&self) -> (usize, usize)
-	{
-		(self.x.to_usize(), self.y.to_usize())
 	}
 }

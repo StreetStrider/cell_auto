@@ -7,7 +7,6 @@ pub type Base = i32;
 pub trait Scalar
 {
 	fn new (value: Base) -> Self;
-	fn to_usize (&self) -> usize;
 }
 
 pub mod coord;

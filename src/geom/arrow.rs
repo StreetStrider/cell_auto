@@ -1,6 +1,8 @@
 
 use std::ops::Range;
 
+use crate::TermScalar;
+
 use super::Base;
 
 // use super::Coord;
@@ -12,6 +14,18 @@ use super::Point;
 use super::Area;
 
 pub type Arrow = Pair<Offset>;
+
+
+//
+// From
+//
+impl From<(TermScalar, TermScalar)> for Arrow
+{
+	fn from ((x, y): (TermScalar, TermScalar)) -> Arrow
+	{
+		Arrow::new(x.into(), y.into())
+	}
+}
 
 
 //

@@ -1,8 +1,9 @@
 
+use crate::TermScalar;
+
 use super::Base;
 use super::Scalar;
 use super::Offset;
-use crate::TermScalar;
 
 
 #[derive(Clone, Copy)]
@@ -18,10 +19,33 @@ impl Scalar for Coord
 	{
 		Self(value)
 	}
+}
 
-	fn to_usize (&self) -> usize
+
+//
+// From
+//
+impl From<Coord> for TermScalar
+{
+	fn from (coord: Coord) -> TermScalar
 	{
-		self.0 as usize
+		TermScalar::try_from(coord.0).unwrap()
+	}
+}
+
+impl From<Coord> for usize
+{
+	fn from (coord: Coord) -> usize
+	{
+		coord.0 as usize
+	}
+}
+
+impl From<usize> for Coord
+{
+	fn from (size: usize) -> Coord
+	{
+		Coord::new(Base::try_from(size).unwrap())
 	}
 }
 
@@ -62,19 +86,5 @@ impl std::ops::Neg for Coord
 	fn neg (self) -> Self
 	{
 		Coord(-self.0)
-	}
-}
-
-
-impl Coord
-{
-	pub fn new (value: Base) -> Coord
-	{
-		Coord(value)
-	}
-
-	pub fn to_cursor (self) -> TermScalar
-	{
-		TermScalar::try_from(self.0).unwrap()
 	}
 }

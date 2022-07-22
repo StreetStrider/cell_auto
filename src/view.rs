@@ -1,9 +1,9 @@
 
 use termion;
+use termion::cursor::Goto;
 
 use super::Cell;
 
-use super::geom::Base;
 use super::geom::Offset;
 
 use super::geom::Point;
@@ -66,7 +66,7 @@ impl View
 				let p_term = (term_root + a_rel);
 				let p_grid = (grid_root + a_rel);
 
-				print!("{}", p_term.to_cursor());
+				print!("{}", Goto::from(p_term));
 
 				let cell = grid.get(&p_grid);
 
@@ -82,14 +82,12 @@ impl View
 	fn clear (&self)
 	{
 		print!("{}", termion::clear::All);
-		print!("{}", termion::cursor::Goto(1, 1));
+		print!("{}", Goto(1, 1));
 	}
 }
 
 
 fn terminal_size () -> Arrow
 {
-	let (x, y) = termion::terminal_size().unwrap();
-
-	Arrow::new(x as Base, y as Base)
+	Arrow::from(termion::terminal_size().unwrap())
 }

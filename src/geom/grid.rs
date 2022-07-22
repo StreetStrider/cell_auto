@@ -1,5 +1,4 @@
 
-use super::Base;
 use super::Point;
 use super::super::Cell;
 
@@ -50,7 +49,7 @@ impl <Item: Cell, const Size: usize> Grid<Item, Size>
 
 	pub fn ack (&self, point: &Point) -> Option<(usize, usize)>
 	{
-		let (x, y) = point.to_usize();
+		let (x, y): (usize, usize) = (*point).into();
 
 		if x >= Size { return None }
 		if y >= Size { return None }
@@ -104,7 +103,7 @@ impl <'G, Item: Cell, const Size: usize> Iterator for GridIterator<'G, Item, Siz
 
 		if y == Size { return None }
 
-		let pt = Point::new(x as Base, y as Base);
+		let pt = Point::from((x, y));
 		let next = &grid.table[y][x];
 
 		if (x == Size - 1)

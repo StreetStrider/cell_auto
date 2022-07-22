@@ -16,11 +16,6 @@ impl Scalar for Offset
 	{
 		Self(value)
 	}
-
-	fn to_usize (&self) -> usize
-	{
-		self.0 as usize
-	}
 }
 
 
@@ -60,13 +55,5 @@ impl std::ops::Neg for Offset
 	fn neg (self) -> Self
 	{
 		Offset(-self.0)
-	}
-}
-
-impl Offset
-{
-	pub fn new (value: Base) -> Self
-	{
-		Offset(value)
 	}
 }
