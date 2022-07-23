@@ -44,6 +44,7 @@ impl std::ops::Add<Arrow> for Point
 {
 	type Output = Self;
 
+	#[inline]
 	fn add (self, arrow: Arrow) -> Self
 	{
 		Point::new(self.x.0 + arrow.x.0, self.y.0 + arrow.y.0)

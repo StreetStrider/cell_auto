@@ -110,6 +110,7 @@ fn main ()
 	}
 }
 
+
 fn cycle (moore: &Moore, dugrid: &mut G1)
 {
 	{
@@ -163,7 +164,6 @@ fn fill_moore_of <Item: Cell, const Size: usize> (moore: &Moore, grid: &Grid<Ite
 
 	sum
 }
-
 
 fn moore () -> Moore
 {

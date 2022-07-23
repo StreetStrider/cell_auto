@@ -22,6 +22,7 @@ impl <Item: Cell, const Size: usize> GridRead for Grid<Item, Size>
 {
 	type Item = Item;
 
+	#[inline]
 	fn get (&self, point: &Point) -> Option<&Item>
 	{
 		let (x, y) = self.ack(point)?;
@@ -55,6 +56,7 @@ impl <Item: Cell, const Size: usize> Grid<Item, Size>
 		Grid { table: [ [ Item::empty(); Size ]; Size ] }
 	}
 
+	#[inline]
 	pub fn ack (&self, point: &Point) -> Option<(usize, usize)>
 	{
 		let (x, y): (usize, usize) = (*point).into();
@@ -65,6 +67,7 @@ impl <Item: Cell, const Size: usize> Grid<Item, Size>
 		Some((x, y))
 	}
 
+	#[inline]
 	pub fn set (&mut self, point: &Point, item: Item) -> Option<()>
 	{
 		let (x, y) = self.ack(point)?;
