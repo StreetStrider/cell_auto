@@ -3,7 +3,7 @@ use std::cell::Ref;
 use std::cell::RefMut;
 use std::cell::RefCell;
 
-use super::cell::Cell;
+use super::cell;
 use super::geom::grid::Grid;
 
 
@@ -28,26 +28,26 @@ impl Current
 }
 
 
-pub struct DoubleGrid <Item: Cell, const Size: usize>
+pub struct DoubleGrid <Cell: cell::Cell, const Size: usize>
 {
 	current: Current,
-	one: RefCell<Grid<Item, Size>>,
-	two: RefCell<Grid<Item, Size>>,
+	one: RefCell<Grid<Cell, Size>>,
+	two: RefCell<Grid<Cell, Size>>,
 }
 
 
-impl <Item: Cell, const Size: usize> DoubleGrid<Item, Size>
+impl <Cell: cell::Cell, const Size: usize> DoubleGrid<Cell, Size>
 {
 	pub fn new () -> Self
 	{
 		let current = Current::One;
-		let one = RefCell::new(Grid::<Item, Size>::new());
-		let two = RefCell::new(Grid::<Item, Size>::new());
+		let one = RefCell::new(Grid::<Cell, Size>::new());
+		let two = RefCell::new(Grid::<Cell, Size>::new());
 
 		DoubleGrid { current, one, two }
 	}
 
-	pub fn get (&self) -> Ref<'_, Grid<Item, Size>>
+	pub fn get (&self) -> Ref<'_, Grid<Cell, Size>>
 	{
 		match self.current
 		{
@@ -56,7 +56,7 @@ impl <Item: Cell, const Size: usize> DoubleGrid<Item, Size>
 		}
 	}
 
-	pub fn get_next (&self) -> RefMut<'_, Grid<Item, Size>>
+	pub fn get_next (&self) -> RefMut<'_, Grid<Cell, Size>>
 	{
 		match self.current
 		{

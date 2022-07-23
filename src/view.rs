@@ -56,7 +56,7 @@ impl View
 		self.gen = (self.gen + 1);
 	}
 
-	pub fn draw <C: Cell> (&self, grid: &impl GridRead<Item = C>)
+	pub fn draw <C: Cell> (&self, grid: &impl GridRead<Cell = C>)
 	{
 		self.clear();
 

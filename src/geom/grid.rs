@@ -1,35 +1,35 @@
 
 use super::Point;
-use super::super::Cell;
+// use super::super::Cell;
 
 
 pub trait GridRead
 {
-	type Item;
+	type Cell;
 
-	fn get (&self, point: &Point) -> Option<&Self::Item>;
-	fn each <F: FnMut(&Point, &Self::Item) -> ()> (&self, fn_each: F) -> ();
+	fn get (&self, point: &Point) -> Option<&Self::Cell>;
+	fn each <F: FnMut(&Point, &Self::Cell) -> ()> (&self, fn_each: F) -> ();
 }
 
 
-pub struct Grid <Item: Cell, const Size: usize>
+pub struct Grid <Cell: super::super::Cell, const Size: usize>
 {
-	pub table: [ [ Item; Size ]; Size ],
+	pub table: [ [ Cell; Size ]; Size ],
 }
 
 
-impl <Item: Cell, const Size: usize> GridRead for Grid<Item, Size>
+impl <Cell: super::super::Cell, const Size: usize> GridRead for Grid<Cell, Size>
 {
-	type Item = Item;
+	type Cell = Cell;
 
 	#[inline]
-	fn get (&self, point: &Point) -> Option<&Item>
+	fn get (&self, point: &Point) -> Option<&Cell>
 	{
 		let (x, y) = self.ack(point)?;
 		Some(&self.table[y][x])
 	}
 
-	fn each <F: FnMut(&Point, &Self::Item) -> ()> (&self, mut fn_each: F) -> ()
+	fn each <F: FnMut(&Point, &Self::Cell) -> ()> (&self, mut fn_each: F) -> ()
 	{
 		let mut point = Point::zero();
 
@@ -49,11 +49,11 @@ impl <Item: Cell, const Size: usize> GridRead for Grid<Item, Size>
 }
 
 
-impl <Item: Cell, const Size: usize> Grid<Item, Size>
+impl <Cell: super::super::Cell, const Size: usize> Grid<Cell, Size>
 {
 	pub fn new () -> Self
 	{
-		Grid { table: [ [ Item::empty(); Size ]; Size ] }
+		Grid { table: [ [ Cell::empty(); Size ]; Size ] }
 	}
 
 	#[inline]
@@ -68,10 +68,10 @@ impl <Item: Cell, const Size: usize> Grid<Item, Size>
 	}
 
 	#[inline]
-	pub fn set (&mut self, point: &Point, item: Item) -> Option<()>
+	pub fn set (&mut self, point: &Point, cell: Cell) -> Option<()>
 	{
 		let (x, y) = self.ack(point)?;
-		self.table[y][x] = item;
+		self.table[y][x] = cell;
 		Some(())
 	}
 }

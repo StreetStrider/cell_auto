@@ -28,7 +28,8 @@ use view::View;
 
 type TermScalar = u16;
 
-const size: usize = 200;
+// const size: usize = 1000;
+const size: usize = 30;
 const delay: u64 = 32;
 
 // pub type G1 = Grid<C1, size>;
@@ -139,7 +140,7 @@ fn cycle (moore: &Moore, dugrid: &mut G1)
 	dugrid.switch();
 }
 
-fn cycle_each <Item: Cell, const Size: usize, F: Fn(&Point, &Item) -> Item> (src: &Grid<Item, Size>, dst: &mut Grid<Item, Size>, fn_map: F)
+fn cycle_each <Cell: cell::Cell, const Size: usize, F: Fn(&Point, &Cell) -> Cell> (src: &Grid<Cell, Size>, dst: &mut Grid<Cell, Size>, fn_map: F)
 {
 	src.each(|point, cell|
 	{
@@ -149,7 +150,7 @@ fn cycle_each <Item: Cell, const Size: usize, F: Fn(&Point, &Item) -> Item> (src
 	})
 }
 
-fn fill_moore_of <Item: Cell, const Size: usize> (moore: &Moore, grid: &Grid<Item, Size>, point: &Point) -> usize
+fn fill_moore_of <Cell: cell::Cell, const Size: usize> (moore: &Moore, grid: &Grid<Cell, Size>, point: &Point) -> usize
 {
 	let mut sum = 0usize;
 
@@ -157,7 +158,7 @@ fn fill_moore_of <Item: Cell, const Size: usize> (moore: &Moore, grid: &Grid<Ite
 	{
 		match grid.get(&(*point + arrow))
 		{
-			Some(&item) if item != Item::empty() => { sum = (sum + 1); }
+			Some(&cell) if cell != Cell::empty() => { sum = (sum + 1); }
 			_ => {},
 		}
 	}
