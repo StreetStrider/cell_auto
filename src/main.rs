@@ -4,6 +4,8 @@
 #![allow(non_camel_case_types)]
 #![allow(unused_parens)]
 
+use tempus_fugit::measure;
+
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -27,7 +29,7 @@ use view::View;
 type TermScalar = u16;
 
 const size: usize = 200;
-const delay: u64 = 2;
+const delay: u64 = 32;
 
 // pub type G1 = Grid<C1, size>;
 pub type G1 = DoubleGrid<C1, size>;
@@ -61,9 +63,13 @@ impl Cell for C1
 	}
 }
 
+type Moore = [Arrow; 8];
+
 
 fn main ()
 {
+	let moore = moore();
+
 	let mut dugrid = G1::new();
 	let mut view = View::new();
 
@@ -79,7 +85,6 @@ fn main ()
 		grid.set(&Point::new(9, 5), Fill);
 		grid.set(&Point::new(8, 5), Fill);
 		grid.set(&Point::new(7, 4), Fill);
-
 	}
 
 	dugrid.switch();
@@ -87,22 +92,32 @@ fn main ()
 	loop
 	{
 		view.tick();
-		view.draw(&*dugrid.get());
+
+		let (_, measurement) = measure!
+		{
+			view.draw(&*dugrid.get())
+		};
+		view.m_draw = measurement;
 
 		sleep(Duration::from_millis(delay));
 
-		cycle(&mut dugrid);
+		let (_, measurement) = measure!
+		{
+			cycle(&moore, &mut dugrid)
+		};
+
+		view.m_cycle = measurement;
 	}
 }
 
-fn cycle (dugrid: &mut G1)
+fn cycle (moore: &Moore, dugrid: &mut G1)
 {
 	{
 		let src = &*dugrid.get();
 		let dst = &mut *dugrid.get_next();
 		cycle_each(src, dst, |pt, cell|
 		{
-			let nebs = fill_moore_of(src, &pt);
+			let nebs = fill_moore_of(moore, src, &pt);
 
 			match cell
 			{
@@ -123,55 +138,39 @@ fn cycle (dugrid: &mut G1)
 	dugrid.switch();
 }
 
-fn cycle_each <Item: Cell, const Size: usize, F: Fn(Point, &Item) -> Item> (src: &Grid<Item, Size>, dst: &mut Grid<Item, Size>, fn_map: F)
+fn cycle_each <Item: Cell, const Size: usize, F: Fn(&Point, &Item) -> Item> (src: &Grid<Item, Size>, dst: &mut Grid<Item, Size>, fn_map: F)
 {
-	for (pt, cell) in src
+	src.each(|point, cell|
 	{
-		let cell_next = fn_map(pt, cell);
+		let cell_next = fn_map(point, cell);
 
-		dst.set(&pt, cell_next);
-	}
-}
-
-/*
-fill_moore_of(&*grid, &Point::new(5, 5))
-
-
-	let grid = dugrid.get();
-	// println!("{:?}", moore_of(&*grid, &Point::new(1, 1)));
-	for item in moore_of(&*grid, &Point::new(5, 5))
-	{
-		println!("{:?}", item);
-	}
-	// println!("{}", );
-	return;
-*/
-
-fn fill_moore_of <'L, Item: Cell, const Size: usize> (grid: &'L Grid<Item, Size>, point: &Point) -> usize
-{
-	grid.get_range(moore(point))
-	.iter()
-	.filter(|(_, item)|
-	{
-		match item
-		{
-			Some(&item) if item != Item::empty() => true,
-			_ => false,
-		}
+		dst.set(point, cell_next);
 	})
-	.count()
 }
 
-fn moore_of <'L, Item: Cell, const Size: usize> (grid: &'L Grid<Item, Size>, point: &Point)
- -> Vec<(Point, Option<&'L Item>)>
+fn fill_moore_of <Item: Cell, const Size: usize> (moore: &Moore, grid: &Grid<Item, Size>, point: &Point) -> usize
 {
-	grid.get_range(moore(point))
+	let mut sum = 0usize;
+
+	for arrow in *moore
+	{
+		match grid.get(&(*point + arrow))
+		{
+			Some(&item) if item != Item::empty() => { sum = (sum + 1); }
+			_ => {},
+		}
+	}
+
+	sum
 }
 
-fn moore (point: &Point) -> Vec<Point>
+
+fn moore () -> Moore
 {
 	let range = [-1, 0, 1];
-	let mut moore = vec![];
+
+	let mut moore = [Arrow::zero(); 8];
+	let mut next = 0;
 
 	for x in range.clone()
 	{
@@ -179,8 +178,12 @@ fn moore (point: &Point) -> Vec<Point>
 		{
 			match (x, y)
 			{
-				(0, 0) => (),
-				(_, _) => moore.push(*point + Arrow::new(x, y)),
+				(0, 0) => {},
+				(_, _) =>
+				{
+					moore[next] = Arrow::new(x, y);
+					next = (next + 1);
+				}
 			}
 		}
 	}

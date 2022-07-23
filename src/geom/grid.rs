@@ -8,7 +8,7 @@ pub trait GridRead
 	type Item;
 
 	fn get (&self, point: &Point) -> Option<&Self::Item>;
-	fn get_range (&self, points: Vec<Point>) -> Vec<(Point, Option<&Self::Item>)>;
+	fn each <F: FnMut(&Point, &Self::Item) -> ()> (&self, fn_each: F) -> ();
 }
 
 
@@ -28,14 +28,22 @@ impl <Item: Cell, const Size: usize> GridRead for Grid<Item, Size>
 		Some(&self.table[y][x])
 	}
 
-	fn get_range (&self, points: Vec<Point>) -> Vec<(Point, Option<&Item>)>
+	fn each <F: FnMut(&Point, &Self::Item) -> ()> (&self, mut fn_each: F) -> ()
 	{
-		points.iter()
-		.map(|point|
+		let mut point = Point::zero();
+
+		for y in 0..Size
 		{
-			(*point, self.get(&point))
-		})
-		.collect()
+			for x in 0..Size
+			{
+				point.x = x.into();
+				point.y = y.into();
+
+				let next = &self.table[y][x];
+
+				fn_each(&point, &next);
+			}
+		}
 	}
 }
 
@@ -66,9 +74,10 @@ impl <Item: Cell, const Size: usize> Grid<Item, Size>
 }
 
 
+/*
 impl <'G, Item: Cell, const Size: usize> IntoIterator for &'G Grid<Item, Size>
 {
-	type Item = (Point, &'G Item);
+	type Item = (&Point, &'G Item);
 	type IntoIter = GridIterator<'G, Item, Size>;
 
 	fn into_iter (self) -> Self::IntoIter
@@ -83,27 +92,30 @@ pub struct GridIterator <'G, Item: Cell, const Size: usize>
 	grid: &'G Grid<Item, Size>,
 	x: usize,
 	y: usize,
+	point: Point,
 }
 
 impl <'G, Item: Cell, const Size: usize> GridIterator<'G, Item, Size>
 {
 	fn new (grid: &'G Grid<Item, Size>) -> Self
 	{
-		GridIterator { grid, x: 0, y: 0 }
+		GridIterator { grid, x: 0, y: 0, point: Point::zero() }
 	}
 }
 
 impl <'G, Item: Cell, const Size: usize> Iterator for GridIterator<'G, Item, Size>
 {
-	type Item = (Point, &'G Item);
+	type Item = (&Point, &'G Item);
 
 	fn next (&mut self) -> Option<Self::Item>
 	{
-		let Self { grid, mut x, mut y } = self;
+		let Self { grid, mut x, mut y, mut point } = self;
 
 		if y == Size { return None }
 
-		let pt = Point::from((x, y));
+		point.x = x.into();
+		point.y = y.into();
+
 		let next = &grid.table[y][x];
 
 		if (x == Size - 1)
@@ -118,6 +130,7 @@ impl <'G, Item: Cell, const Size: usize> Iterator for GridIterator<'G, Item, Siz
 
 		(self.x, self.y) = (x, y);
 
-		Some((pt, next))
+		Some((&self.point, next))
 	}
 }
+*/
