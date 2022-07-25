@@ -61,6 +61,7 @@ impl <C: Cell, const Size: usize> Grid for Square<C, Size>
 		Some(())
 	}
 
+	#[inline]
 	fn each <F: FnMut(&Point, &Self::Cell) -> ()> (&self, mut fn_each: F) -> ()
 	{
 		let mut point = Point::zero();

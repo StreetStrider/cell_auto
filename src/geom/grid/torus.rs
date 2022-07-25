@@ -40,7 +40,6 @@ impl <C: Cell, const Size: usize> Grid for Torus<C, Size>
 	fn get (&self, point: &Point) -> Option<&Self::Cell>
 	{
 		let pair = self.ack(point);
-
 		self.square.get(&(pair.into()))
 	}
 
