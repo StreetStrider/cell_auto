@@ -29,8 +29,7 @@ use view::View;
 
 type TermScalar = u16;
 
-// const size: usize = 30;
-const size: usize = 200;
+const size: usize = 250;
 const delay: u64 = 32;
 
 pub type G1 = DoubleGrid<Square<C1, size>>;
