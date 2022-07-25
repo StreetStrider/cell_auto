@@ -18,7 +18,8 @@ mod cell;
 use cell::Cell;
 
 use geom::grid::Grid;
-use geom::grid::GridRead;
+use geom::grid::Square;
+use geom::grid::Torus;
 
 mod doublegrid;
 use doublegrid::DoubleGrid;
@@ -28,12 +29,12 @@ use view::View;
 
 type TermScalar = u16;
 
-// const size: usize = 1000;
-const size: usize = 30;
+// const size: usize = 30;
+const size: usize = 200;
 const delay: u64 = 32;
 
-// pub type G1 = Grid<C1, size>;
-pub type G1 = DoubleGrid<C1, size>;
+pub type G1 = DoubleGrid<Square<C1, size>>;
+// pub type G1 = DoubleGrid<Torus<C1, size>>;
 
 #[derive(Clone)]
 #[derive(Copy)]
@@ -140,7 +141,7 @@ fn cycle (moore: &Moore, dugrid: &mut G1)
 	dugrid.switch();
 }
 
-fn cycle_each <Cell: cell::Cell, const Size: usize, F: Fn(&Point, &Cell) -> Cell> (src: &Grid<Cell, Size>, dst: &mut Grid<Cell, Size>, fn_map: F)
+fn cycle_each <C: Cell, F: Fn(&Point, &C) -> C> (src: &impl Grid<Cell = C>, dst: &mut impl Grid<Cell = C>, fn_map: F)
 {
 	src.each(|point, cell|
 	{
@@ -150,7 +151,7 @@ fn cycle_each <Cell: cell::Cell, const Size: usize, F: Fn(&Point, &Cell) -> Cell
 	})
 }
 
-fn fill_moore_of <Cell: cell::Cell, const Size: usize> (moore: &Moore, grid: &Grid<Cell, Size>, point: &Point) -> usize
+fn fill_moore_of <C: Cell> (moore: &Moore, grid: &impl Grid<Cell = C>, point: &Point) -> usize
 {
 	let mut sum = 0usize;
 

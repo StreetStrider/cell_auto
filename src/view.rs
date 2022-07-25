@@ -11,7 +11,7 @@ use super::geom::Offset;
 use super::geom::Point;
 use super::geom::Arrow;
 
-use super::geom::grid::GridRead;
+use super::geom::grid::Grid;
 
 
 const termion_goto_arrow: Arrow = Arrow { x: Offset(1), y: Offset(1) };
@@ -56,7 +56,7 @@ impl View
 		self.gen = (self.gen + 1);
 	}
 
-	pub fn draw <C: Cell> (&self, grid: &impl GridRead<Cell = C>)
+	pub fn draw <C: Cell> (&self, grid: &impl Grid<Cell = C>)
 	{
 		self.clear();
 
