@@ -60,7 +60,12 @@ impl View
 	{
 		self.clear();
 
-		print!("gen {}; cycle ({}); draw ({})", self.gen, self.m_cycle, self.m_draw);
+		print!("gen {} | camera: {} | cycle: ({}) | draw: ({})",
+			self.gen,
+			self.camera,
+			self.m_cycle,
+			self.m_draw,
+		);
 
 		let view_size = terminal_size() - self.root - Arrow::new(0, 1);
 		let (rows, cols) = view_size.to_range();

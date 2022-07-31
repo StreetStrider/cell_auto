@@ -2,9 +2,11 @@
 // https://stackoverflow.com/questions/56450533/is-there-a-way-to-alias-multiple-derives-as-a-single-one
 // not yet
 
+use std::fmt::Display;
+
 pub type Base = i32;
 
-pub trait Scalar
+pub trait Scalar: Display + Copy + Eq + Ord
 {
 	fn new (value: Base) -> Self;
 }

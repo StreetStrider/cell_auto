@@ -1,4 +1,6 @@
 
+use std::fmt;
+
 use crate::TermScalar;
 
 use super::Base;
@@ -18,6 +20,15 @@ impl Scalar for Coord
 	fn new (value: Base) -> Self
 	{
 		Self(value)
+	}
+}
+
+
+impl fmt::Display for Coord
+{
+	fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
 	}
 }
 
