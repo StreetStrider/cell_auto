@@ -4,10 +4,17 @@
 // #![allow(dead_code)]
 // #![allow(non_camel_case_types)]
 
-use tempus_fugit::measure;
+use std::io::{stdin, stdout};
 
-use std::thread::sleep;
+use std::thread;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
+
+use termion::raw::IntoRawMode;
+use termion::cursor::HideCursor;
+use termion::input::TermRead;
+
+use tempus_fugit::measure;
 
 mod geom;
 
@@ -18,8 +25,8 @@ mod cell;
 use cell::Cell;
 
 use geom::grid::Grid;
-// use geom::grid::Square;
-use geom::grid::Torus;
+use geom::grid::Square;
+// use geom::grid::Torus;
 
 mod doublegrid;
 use doublegrid::DoubleGrid;
@@ -30,10 +37,10 @@ use view::View;
 type TermScalar = u16;
 
 const size: usize = 100;
-const delay: u64 = 32;
+const delay: u64 = 16;
 
-// pub type G1 = DoubleGrid<Square<C1, size>>;
-pub type G1 = DoubleGrid<Torus<C1, size>>;
+pub type G1 = DoubleGrid<Square<C1, size>>;
+// pub type G1 = DoubleGrid<Torus<C1, size>>;
 
 #[derive(Clone)]
 #[derive(Copy)]
@@ -69,6 +76,17 @@ type Moore = [Arrow; 8];
 
 fn main ()
 {
+	let stdout = stdout().into_raw_mode().unwrap();
+	let _hide = HideCursor::from(stdout);
+
+	let finished = Arc::new(Mutex::new(false));
+	let paused   = Arc::new(Mutex::new(false));
+
+	thread::spawn(th_input(
+		Arc::clone(&finished),
+		Arc::clone(&paused),
+	));
+
 	let moore = moore();
 
 	let mut dugrid = G1::new();
@@ -92,22 +110,36 @@ fn main ()
 
 	loop
 	{
-		view.tick();
+		if *finished.lock().unwrap() { break }
 
-		let (_, measurement) = measure!
+		let run_cycle = ! *paused.lock().unwrap();
+		let run_draw  = true;
+
+		if run_cycle
 		{
-			view.draw(&*dugrid.get())
-		};
-		view.m_draw = measurement;
+			view.tick();
+		}
 
-		sleep(Duration::from_millis(delay));
-
-		let (_, measurement) = measure!
+		if run_draw
 		{
-			cycle(&moore, &mut dugrid)
-		};
+			let (_, measurement) = measure!
+			{
+				view.draw(&*dugrid.get())
+			};
+			view.m_draw = measurement;
+		}
 
-		view.m_cycle = measurement;
+		thread::sleep(Duration::from_millis(delay));
+
+		if run_cycle
+		{
+			let (_, measurement) = measure!
+			{
+				cycle(&moore, &mut dugrid)
+			};
+
+			view.m_cycle = measurement;
+		}
 	}
 }
 
@@ -190,4 +222,33 @@ fn moore () -> Moore
 	}
 
 	moore
+}
+
+fn th_input (
+	finished: Arc<Mutex<bool>>,
+	paused:   Arc<Mutex<bool>>,
+)
+-> impl FnOnce() -> ()
+{
+	move ||
+	{
+		use termion::event::Key;
+
+		for input in stdin().keys()
+		{
+			match input.unwrap()
+			{
+				Key::Char('q') =>
+				{
+					*finished.lock().unwrap() = true;
+				},
+				Key::Char(' ') =>
+				{
+					let mut paused = paused.lock().unwrap();
+					*paused = ! *paused;
+				}
+				_ => {},
+			}
+		}
+	}
 }
