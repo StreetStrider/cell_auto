@@ -1,4 +1,7 @@
 
+use std::io::stdout;
+use std::io::Write;
+
 use termion;
 use termion::cursor::Goto;
 
@@ -58,7 +61,8 @@ impl View
 
 	pub fn draw <C: Cell> (&self, grid: &impl Grid<Cell = C>)
 	{
-		self.clear();
+		print!("{}", Goto(1, 1));
+		print!("{}", termion::clear::UntilNewline);
 
 		print!("gen {} | camera: {} | cycle: ({}) | draw: ({})",
 			self.gen,
@@ -88,14 +92,14 @@ impl View
 					print!("{}", cell.draw());
 				}
 			}
-			print!("\n");
+
+			stdout().lock().flush().unwrap();
 		}
 	}
 
-	fn clear (&self)
+	pub fn clear (&self)
 	{
 		print!("{}", termion::clear::All);
-		print!("{}", Goto(1, 1));
 	}
 }
 

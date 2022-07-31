@@ -37,7 +37,7 @@ use view::View;
 type TermScalar = u16;
 
 const size: usize = 100;
-const delay: u64 = 16;
+const delay: u64 = 32;
 
 pub type G1 = DoubleGrid<Square<C1, size>>;
 // pub type G1 = DoubleGrid<Torus<C1, size>>;
@@ -107,6 +107,8 @@ fn main ()
 	}
 
 	dugrid.switch();
+
+	view.clear();
 
 	loop
 	{
@@ -186,9 +188,9 @@ fn fill_moore_of <C: Cell> (moore: &Moore, grid: &impl Grid<Cell = C>, point: &P
 {
 	let mut sum = 0usize;
 
-	for arrow in *moore
+	for arrow in moore
 	{
-		match grid.get(&(*point + arrow))
+		match grid.get(&(*point + *arrow))
 		{
 			Some(&cell) if cell != Cell::empty() => { sum = (sum + 1); }
 			_ => {},
