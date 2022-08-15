@@ -1,3 +1,4 @@
+// TODO: rm render reflections
 
 use super::super::Point;
 use super::super::super::Cell;
@@ -29,6 +30,7 @@ impl <C: Cell, const Size: usize> Torus<C, Size>
 
 impl <C: Cell, const Size: usize> Grid for Torus<C, Size>
 {
+	const Size: usize = Size;
 	type Cell = C;
 
 	fn new () -> Self
@@ -50,7 +52,8 @@ impl <C: Cell, const Size: usize> Grid for Torus<C, Size>
 	}
 
 	#[inline]
-	fn each <F: FnMut(&Point, &Self::Cell) -> ()> (&self, fn_each: F) -> ()
+	fn each <F> (&self, fn_each: F) -> ()
+		where F: FnMut(usize, &Point, &Self::Cell) -> ()
 	{
 		self.square.each(fn_each)
 	}

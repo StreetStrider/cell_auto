@@ -35,7 +35,7 @@ impl View
 {
 	pub fn new () -> View
 	{
-		let gen = 0;
+		let gen = 1;
 
 		let m_cycle = Measurement::zero();
 		let m_draw = Measurement::zero();

@@ -29,6 +29,7 @@ impl <C: Cell, const Size: usize> Square<C, Size>
 
 impl <C: Cell, const Size: usize> Grid for Square<C, Size>
 {
+	const Size: usize = Size;
 	type Cell = C;
 
 	fn new () -> Self
@@ -62,7 +63,8 @@ impl <C: Cell, const Size: usize> Grid for Square<C, Size>
 	}
 
 	#[inline]
-	fn each <F: FnMut(&Point, &Self::Cell) -> ()> (&self, mut fn_each: F) -> ()
+	fn each <F> (&self, mut fn_each: F) -> ()
+		where F: FnMut(usize, &Point, &Self::Cell) -> ()
 	{
 		let mut point = Point::zero();
 
@@ -73,7 +75,7 @@ impl <C: Cell, const Size: usize> Grid for Square<C, Size>
 
 			let next = &self.table[index];
 
-			fn_each(&point, &next);
+			fn_each(index, &point, &next);
 		}
 	}
 }

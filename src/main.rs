@@ -10,6 +10,8 @@ use std::thread;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+// use num_cpus::get as cpus;
+
 use termion::raw::IntoRawMode;
 use termion::cursor::HideCursor;
 use termion::input::TermRead;
@@ -36,7 +38,7 @@ use view::View;
 
 type TermScalar = u16;
 
-const size: usize = 100;
+const size: usize = 7120;
 const delay: u64 = 32;
 
 pub type G1 = DoubleGrid<Square<C1, size>>;
@@ -82,18 +84,17 @@ fn main ()
 	let finished = Arc::new(Mutex::new(false));
 	let paused   = Arc::new(Mutex::new(false));
 
-	thread::spawn(th_input(
-		Arc::clone(&finished),
-		Arc::clone(&paused),
-	));
-
 	let moore = moore();
 
-	let mut dugrid = G1::new();
-	let mut view = View::new();
+	let dugrid = G1::new();
+	let dugrid = Arc::new(Mutex::new(dugrid));
+
+	let view = View::new();
+	let view = Arc::new(Mutex::new(view));
 
 	{
-		let mut grid = dugrid.get_next();
+		let grid = dugrid.lock().unwrap();
+		let mut grid = grid.get_next();
 
 		grid.set(&Point::new(3, 3), Fill);
 		grid.set(&Point::new(3, 4), Fill);
@@ -106,38 +107,37 @@ fn main ()
 		grid.set(&Point::new(7, 4), Fill);
 	}
 
-	dugrid.switch();
+	dugrid.lock().unwrap().switch();
 
-	view.clear();
+	view.lock().unwrap().clear();
+
+	thread::spawn(th_draw(
+		Arc::clone(&view),
+		Arc::clone(&dugrid),
+	));
+
+	// thread::sleep(Duration::from_millis(delay / 2));
+
+	thread::spawn(th_input(
+		Arc::clone(&finished),
+		Arc::clone(&paused),
+	));
 
 	loop
 	{
 		if *finished.lock().unwrap() { break }
 
-		let run_cycle = ! *paused.lock().unwrap();
-		let run_draw  = true;
-
-		if run_cycle
-		{
-			view.tick();
-		}
-
-		if run_draw
-		{
-			let (_, measurement) = measure!
-			{
-				view.draw(&*dugrid.get())
-			};
-			view.m_draw = measurement;
-		}
-
 		thread::sleep(Duration::from_millis(delay));
 
-		if run_cycle
+		if ! *paused.lock().unwrap()
 		{
+			let mut view = view.lock().unwrap();
+
+			view.tick();
+
 			let (_, measurement) = measure!
 			{
-				cycle(&moore, &mut dugrid)
+				cycle(&moore, &mut dugrid.lock().unwrap())
 			};
 
 			view.m_cycle = measurement;
@@ -176,13 +176,14 @@ fn cycle (moore: &Moore, dugrid: &mut G1)
 
 fn cycle_each <C: Cell, F: Fn(&Point, &C) -> C> (src: &impl Grid<Cell = C>, dst: &mut impl Grid<Cell = C>, fn_map: F)
 {
-	src.each(|point, cell|
+	src.each(|_, point, cell|
 	{
 		let cell_next = fn_map(point, cell);
 
 		dst.set(point, cell_next);
 	})
 }
+
 
 fn fill_moore_of <C: Cell> (moore: &Moore, grid: &impl Grid<Cell = C>, point: &Point) -> usize
 {
@@ -224,6 +225,36 @@ fn moore () -> Moore
 	}
 
 	moore
+}
+
+
+fn th_draw (
+	view: Arc<Mutex<View>>,
+	dugrid: Arc<Mutex<G1>>,
+)
+-> impl FnOnce() -> ()
+{
+	move ||
+	{
+		let run_draw = true;
+
+		while run_draw
+		{
+			{
+				let dugrid = dugrid.lock().unwrap();
+				let grid = &*dugrid.get();
+				let mut view = view.lock().unwrap();
+
+				let (_, measurement) = measure!
+				{
+					view.draw(grid)
+				};
+				view.m_draw = measurement;
+			}
+
+			thread::sleep(Duration::from_millis(delay));
+		}
+	}
 }
 
 fn th_input (
