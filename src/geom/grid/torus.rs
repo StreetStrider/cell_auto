@@ -1,5 +1,7 @@
 // TODO: rm render reflections
 
+use std::ops::Range;
+
 use super::super::Point;
 use super::super::super::Cell;
 
@@ -49,6 +51,13 @@ impl <C: Cell, const Size: usize> Grid for Torus<C, Size>
 	fn set (&mut self, point: &Point, cell: C) -> Option<()>
 	{
 		self.square.set(point, cell)
+	}
+
+	#[inline]
+	fn each_range <F> (&self, range: Range<usize>, fn_each: F) -> ()
+		where F: FnMut(usize, &Point, &Self::Cell) -> ()
+	{
+		self.square.each_range(range, fn_each)
 	}
 
 	#[inline]

@@ -1,4 +1,6 @@
 
+use std::ops::Range;
+
 use super::Point;
 
 pub mod square;
@@ -16,5 +18,6 @@ pub trait Grid
 	fn new () -> Self;
 	fn get (&self, point: &Point) -> Option<&Self::Cell>;
 	fn each <F: FnMut(usize, &Point, &Self::Cell) -> ()> (&self, fn_each: F) -> ();
+	fn each_range <F: FnMut(usize, &Point, &Self::Cell) -> ()> (&self, range: Range<usize>, fn_each: F) -> ();
 	fn set (&mut self, point: &Point, cell: Self::Cell) -> Option<()>;
 }

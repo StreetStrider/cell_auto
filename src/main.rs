@@ -8,9 +8,10 @@ use std::io::{stdin, stdout};
 
 use std::thread;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
 use std::time::Duration;
 
-// use num_cpus::get as cpus;
+use num_cpus::get as cpus;
 
 use termion::raw::IntoRawMode;
 use termion::cursor::HideCursor;
@@ -35,6 +36,11 @@ use doublegrid::DoubleGrid;
 
 mod view;
 use view::View;
+
+mod moore;
+use moore::Moore;
+
+mod range_sect;
 
 type TermScalar = u16;
 
@@ -73,18 +79,24 @@ impl Cell for C1
 	}
 }
 
-type Moore = [Arrow; 8];
-
-
 fn main ()
 {
-	let stdout = stdout().into_raw_mode().unwrap();
-	let _hide = HideCursor::from(stdout);
+	// let stdout = stdout().into_raw_mode().unwrap();
+	// let _hide = HideCursor::from(stdout);
+
+	let cpus = cpus();
+	let buckets = range_sect::sect(size, cpus);
+	// let sect = sect(10, cpus);
+	println!("{:?}", buckets);
+	// println!("{:?}", sect(16, cpus));
+	// println!("{:?}", sect(32, cpus));
+
+	std::process::exit(0);
 
 	let finished = Arc::new(Mutex::new(false));
 	let paused   = Arc::new(Mutex::new(false));
 
-	let moore = moore();
+	let moore = moore::new();
 
 	let dugrid = G1::new();
 	let dugrid = Arc::new(Mutex::new(dugrid));
@@ -153,7 +165,7 @@ fn cycle (moore: &Moore, dugrid: &mut G1)
 		let dst = &mut *dugrid.get_next();
 		cycle_each(src, dst, |pt, cell|
 		{
-			let nebs = fill_moore_of(moore, src, &pt);
+			let nebs = moore::fill(moore, src, &pt);
 
 			match cell
 			{
@@ -183,50 +195,6 @@ fn cycle_each <C: Cell, F: Fn(&Point, &C) -> C> (src: &impl Grid<Cell = C>, dst:
 		dst.set(point, cell_next);
 	})
 }
-
-
-fn fill_moore_of <C: Cell> (moore: &Moore, grid: &impl Grid<Cell = C>, point: &Point) -> usize
-{
-	let mut sum = 0usize;
-
-	for arrow in moore
-	{
-		match grid.get(&(*point + *arrow))
-		{
-			Some(&cell) if cell != Cell::empty() => { sum = (sum + 1); }
-			_ => {},
-		}
-	}
-
-	sum
-}
-
-fn moore () -> Moore
-{
-	let range = [-1, 0, 1];
-
-	let mut moore = [Arrow::zero(); 8];
-	let mut next = 0;
-
-	for x in range.clone()
-	{
-		for y in range.clone()
-		{
-			match (x, y)
-			{
-				(0, 0) => {},
-				(_, _) =>
-				{
-					moore[next] = Arrow::new(x, y);
-					next = (next + 1);
-				}
-			}
-		}
-	}
-
-	moore
-}
-
 
 fn th_draw (
 	view: Arc<Mutex<View>>,

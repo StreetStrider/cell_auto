@@ -1,4 +1,6 @@
 
+use std::ops::Range;
+
 use super::super::Point;
 use super::super::super::Cell;
 
@@ -14,6 +16,7 @@ pub struct Square <C: Cell, const Size: usize>
 impl <C: Cell, const Size: usize> Square<C, Size>
 {
 	const Size2: usize = (Size * Size);
+	const range_total: Range<usize> = 0..Self::Size2;
 
 	#[inline]
 	fn ack (&self, point: &Point) -> Option<usize>
@@ -63,12 +66,15 @@ impl <C: Cell, const Size: usize> Grid for Square<C, Size>
 	}
 
 	#[inline]
-	fn each <F> (&self, mut fn_each: F) -> ()
+	fn each_range <F> (&self, range: Range<usize>, mut fn_each: F) -> ()
 		where F: FnMut(usize, &Point, &Self::Cell) -> ()
 	{
+		#[cfg(debug_assertions)]
+		assert!(range_contains_range(&Self::range_total, &range));
+
 		let mut point = Point::zero();
 
-		for index in 0..Self::Size2
+		for index in range
 		{
 			point.y = (index / Size).into();
 			point.x = (index % Size).into();
@@ -78,4 +84,21 @@ impl <C: Cell, const Size: usize> Grid for Square<C, Size>
 			fn_each(index, &point, &next);
 		}
 	}
+
+	#[inline]
+	fn each <F> (&self, fn_each: F) -> ()
+		where F: FnMut(usize, &Point, &Self::Cell) -> ()
+	{
+		self.each_range(Self::range_total, fn_each)
+	}
+}
+
+
+#[cfg(debug_assertions)]
+fn range_contains_range <T> (range: &Range<T>, subrange: &Range<T>) -> bool
+	where T: PartialOrd
+{
+	if subrange.start < range.start { return false }
+	if   subrange.end > range.end   { return false }
+	true
 }
